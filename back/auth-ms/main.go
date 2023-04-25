@@ -2,14 +2,12 @@ package main
 
 import (
 	"auth-ms/db"
-	docs "auth-ms/docs"
+	_ "auth-ms/docs"
 	"auth-ms/model"
 	"auth-ms/router"
-	"fmt"
 	"github.com/joho/godotenv"
 	"log"
 	"net/http"
-	"os"
 )
 
 func migrate() error {
@@ -27,7 +25,6 @@ func migrate() error {
 // @BasePath	/api/v1/
 func main() {
 	err := godotenv.Load(".env")
-	docs.SwaggerInfo.Host = fmt.Sprintf("%s:%s", os.Getenv("DISPLAY_HOST"), os.Getenv("DISPLAY_PORT"))
 	db.NewDatabase().Init()
 	err = migrate()
 	if err != nil {
@@ -36,7 +33,7 @@ func main() {
 	routes := router.NewRouter()
 
 	server := &http.Server{
-		Addr:    fmt.Sprintf(":%s", os.Getenv("DISPLAY_PORT")),
+		Addr:    ":8080",
 		Handler: routes,
 	}
 

@@ -33,8 +33,8 @@ func NewAuthController(authService service.AuthService) AuthController {
 // @Summary			Auth user
 // @Description 	Check user credentials and auth in service
 // @Param			user body DTO.AuthRequestDTO true "User authorization"
-// @Success			200 {object} service.DataJSON{data=DTO.TokenResponseDTO{}}
-// @Failure      	404  {object}  service.MessageJSON{}
+// @Success			200 {object} 	response.DataJSON{data=DTO.TokenResponseDTO{}}
+// @Failure      	404  {object}	response.MessageJSON{}
 // @Failure      	400
 // @Router			/auth [post]
 func (c *authControllerImpl) Auth(ctx *gin.Context) {
@@ -64,7 +64,7 @@ func (c *authControllerImpl) Auth(ctx *gin.Context) {
 // @Description 	Create new user in database, gave default permissions
 // @Param			user body DTO.RegistrationRequestDTO true "User registration"
 // @Success			201
-// @Failure      	409 {object}  service.MessageJSON{}
+// @Failure      	409 {object}  response.MessageJSON{}
 // @Failure      	400
 // @Router			/auth/registration [post]
 func (c *authControllerImpl) Registration(ctx *gin.Context) {
@@ -92,7 +92,7 @@ func (c *authControllerImpl) Registration(ctx *gin.Context) {
 // @Summary			Refresh tokens
 // @Description 	Gave new token pair
 // @Param			user body DTO.RefreshRequestDTO true "Refresh tokens"
-// @Success			200 {object} service.DataJSON{data=DTO.TokenResponseDTO{}}
+// @Success			200 {object} response.DataJSON{data=DTO.TokenResponseDTO{}}
 // @Failure      	400
 // @Failure      	401
 // @Router			/auth/refresh [post]
@@ -120,8 +120,8 @@ func (c *authControllerImpl) Refresh(ctx *gin.Context) {
 // @Description		Remove user data by id.
 // @Param			userId   path   uint  true  "User ID"
 // @Success			200
-// @Failure      	400 {object} service.MessageJSON{}
-// @Failure      	500 {object} service.MessageJSON{}
+// @Failure      	400 {object} response.MessageJSON{}
+// @Failure      	500 {object} response.MessageJSON{}
 // @Router			/auth/{userId} [delete]
 func (c *authControllerImpl) DeleteUser(ctx *gin.Context) {
 	userIdParam, find := ctx.Params.Get("userId")
@@ -144,7 +144,7 @@ func (c *authControllerImpl) DeleteUser(ctx *gin.Context) {
 // @Tags			Auth
 // @Summary			Get all users
 // @Security 		BearerAuth
-// @Success			200 {object} service.DataJSON{data=[]DTO.UserDTO}
+// @Success			200 {object} response.DataJSON{data=[]DTO.UserDTO}
 // @Failure      	401
 // @Failure      	500
 // @Router			/auth/allUsers [get]
