@@ -2,20 +2,21 @@ package router
 
 import (
 	"auth-ms/controller"
-	"auth-ms/db"
 	"auth-ms/provider"
 	"auth-ms/service"
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
+	"gorm.io/gorm"
+	"shared/middlewares"
 )
 
-func authRoutes(router *gin.RouterGroup) {
+func authRoutes(router *gin.RouterGroup, dbInstance *gorm.DB) {
 	public := router.Group("/auth")
 	adminPermission := router.Group("/auth")
-	adminPermission.Use(AdminPermissionMiddleware)
+	adminPermission.Use(middlewares.AdminPermissionMiddleware)
 
-	userProvider := provider.NewUserProvider(db.Instance)
+	userProvider := provider.NewUserProvider(dbInstance)
 	authService := service.NewAuthService(userProvider)
 	authController := controller.NewAuthController(authService)
 
@@ -27,11 +28,11 @@ func authRoutes(router *gin.RouterGroup) {
 	adminPermission.GET("/allUsers", authController.GetAllUsers)
 }
 
-func NewRouter() *gin.Engine {
+func NewRouter(dbInstance *gorm.DB) *gin.Engine {
 	router := gin.Default()
 	router.GET("/docs/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	baseRouter := router.Group("/api/v1")
-	authRoutes(baseRouter)
+	authRoutes(baseRouter, dbInstance)
 
 	return router
 }

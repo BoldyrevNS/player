@@ -2,10 +2,10 @@ package service
 
 import (
 	"auth-ms/DTO"
-	"auth-ms/model"
 	"auth-ms/provider"
-	"auth-ms/shared/token"
 	"golang.org/x/crypto/bcrypt"
+	"shared/common/token"
+	"shared/model"
 )
 
 type AuthService interface {

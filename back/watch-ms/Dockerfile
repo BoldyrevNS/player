@@ -10,16 +10,16 @@ COPY ../shared .
 
 WORKDIR /build/app/src
 
-COPY ./auth-ms/go.mod .
+COPY ./watch-ms/go.mod .
 RUN go mod tidy
 RUN go mod download -x
 RUN go install github.com/swaggo/swag/cmd/swag@v1.8.11
-COPY ./auth-ms .
+COPY ./watch-ms .
 RUN swag init --parseDependency
 RUN go build -o output main.go
 
 FROM alpine
 WORKDIR /build
-COPY --from=builder build/app/src/output build/auth-ms
+COPY --from=builder build/app/src/output build/watch-ms
 EXPOSE 8080
-ENTRYPOINT ["build/auth-ms"]
+ENTRYPOINT ["build/watch-ms"]

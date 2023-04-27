@@ -3,10 +3,11 @@ package controller
 import (
 	"auth-ms/DTO"
 	"auth-ms/service"
-	"auth-ms/shared/response"
-	"auth-ms/shared/token"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"shared/common/response"
+	"shared/common/token"
 	"strconv"
 )
 
@@ -122,6 +123,7 @@ func (c *authControllerImpl) Refresh(ctx *gin.Context) {
 // @Success			200
 // @Failure      	400 {object} response.MessageJSON{}
 // @Failure      	500 {object} response.MessageJSON{}
+// @Failure      	401
 // @Router			/auth/{userId} [delete]
 func (c *authControllerImpl) DeleteUser(ctx *gin.Context) {
 	userIdParam, find := ctx.Params.Get("userId")
@@ -131,11 +133,11 @@ func (c *authControllerImpl) DeleteUser(ctx *gin.Context) {
 	}
 	userId, err := strconv.Atoi(userIdParam)
 	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, response.MessageJSON{Message: "Wrong format"})
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, response.MessageJSON{Message: "wrong format"})
 	}
 	err = c.authService.DeleteUser(uint(userId))
 	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, response.MessageJSON{Message: "Delete error"})
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, response.MessageJSON{Message: fmt.Sprintf("delete error: %v", err)})
 	}
 	ctx.AbortWithStatus(http.StatusOK)
 }

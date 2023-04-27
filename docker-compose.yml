@@ -1,0 +1,71 @@
+version: "3.6"
+services:
+  auth-postgres:
+    image: postgres:latest
+    container_name: auth-db
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=nbsp
+      - POSTGRES_DB=player
+    env_file:
+      - .env
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:5432" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  auth-ms:
+    build:
+      context: ./back
+      dockerfile: ./auth-ms/Dockerfile
+    container_name: auth-ms
+    ports:
+      - "8080:8080"
+    environment:
+      - DB_HOST=auth-postgres
+      - DB_PORT=5432
+      - DB_USER=nbsp
+      - DB_NAME=player
+      - DISPLAY_HOST:localhost:8080
+    env_file:
+      - ./back/auth-ms/.env
+    depends_on:
+      - auth-postgres
+    restart: on-failure
+
+  watch-postgres:
+    image: postgres:latest
+    container_name: watch-db
+    ports:
+      - "5433:5432"
+    environment:
+      - POSTGRES_USER=nbsp
+      - POSTGRES_DB=player
+    env_file:
+      - .env
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:5433" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  watch-ms:
+    build:
+      context: ./back
+      dockerfile: ./watch-ms/Dockerfile
+    container_name: watch-ms
+    ports:
+      - "8082:8080"
+    environment:
+      - DB_HOST=watch-postgres
+      - DB_PORT=5432
+      - DB_USER=nbsp
+      - DB_NAME=player
+      - DISPLAY_HOST:localhost:8082
+    env_file:
+      - ./back/watch-ms/.env
+    depends_on:
+      - watch-postgres
+    restart: on-failure

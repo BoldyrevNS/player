@@ -1,19 +1,19 @@
 package main
 
 import (
-	docs "auth-ms/docs"
-	"auth-ms/router"
 	"github.com/joho/godotenv"
 	"gorm.io/gorm"
 	"log"
 	"net/http"
 	"os"
 	"shared/db"
-	"shared/model"
+	docs "watch-ms/docs"
+	"watch-ms/model"
+	"watch-ms/router"
 )
 
 func migrate(dbInstance *gorm.DB) error {
-	err := dbInstance.AutoMigrate(&model.User{})
+	err := dbInstance.AutoMigrate(&model.Category{})
 	return err
 }
 
@@ -38,6 +38,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("migration error")
 	}
+
 	routes := router.NewRouter(dbInstance)
 
 	server := &http.Server{

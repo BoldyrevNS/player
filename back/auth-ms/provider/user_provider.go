@@ -1,8 +1,8 @@
 package provider
 
 import (
-	"auth-ms/model"
 	"gorm.io/gorm"
+	"shared/model"
 )
 
 type UserProvider interface {
