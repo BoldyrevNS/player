@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"shared/common/response"
 	"strconv"
-	category2 "watch-ms/DTO"
+	categoryDTO "watch-ms/DTO"
 	"watch-ms/service/category"
 )
 
@@ -30,12 +30,15 @@ func NewCategoryController(service category.Service) Controller {
 // @Tags			Category
 // @Summary			Get all categories
 // @Security 		BearerAuth
-// @Success			200 {object} response.DataJSON{data=[]DTO.CategoryDTO}
+// @Success			200 {object} response.DataJSON{data=[]categoryDTO.CategoryDTO}
 // @Failure      	401
 // @Failure      	500
 // @Router			/category/all [get]
 func (c *controllerImpl) GetAllCategories(ctx *gin.Context) {
 	categories, err := c.service.GetAllCategories()
+	if len(categories) == 0 {
+		categories = make([]categoryDTO.CategoryDTO, 0)
+	}
 	if err != nil {
 		ctx.AbortWithStatus(http.StatusInternalServerError)
 		return
@@ -57,7 +60,7 @@ func (c *controllerImpl) GetAllCategories(ctx *gin.Context) {
 // @Failure      	401
 // @Router			/category/ [post]
 func (c *controllerImpl) CreateCategory(ctx *gin.Context) {
-	var data category2.CreateCategoryDTO
+	var data categoryDTO.CreateCategoryDTO
 	err := ctx.ShouldBindJSON(&data)
 	if err != nil {
 		ctx.AbortWithStatus(http.StatusBadRequest)

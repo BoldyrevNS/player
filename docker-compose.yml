@@ -9,7 +9,7 @@ services:
       - POSTGRES_USER=nbsp
       - POSTGRES_DB=player
     env_file:
-      - .env
+      - ./back/.env
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:5432" ]
       interval: 30s
@@ -22,15 +22,15 @@ services:
       dockerfile: ./auth-ms/Dockerfile
     container_name: auth-ms
     ports:
-      - "8080:8080"
+      - "8081:8080"
     environment:
       - DB_HOST=auth-postgres
       - DB_PORT=5432
       - DB_USER=nbsp
       - DB_NAME=player
-      - DISPLAY_HOST:localhost:8080
+      - DISPLAY_HOST:localhost:8081
     env_file:
-      - ./back/auth-ms/.env
+      - ./back/.env
     depends_on:
       - auth-postgres
     restart: on-failure
@@ -44,7 +44,7 @@ services:
       - POSTGRES_USER=nbsp
       - POSTGRES_DB=player
     env_file:
-      - .env
+      - ./back/.env
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:5433" ]
       interval: 30s
@@ -65,7 +65,46 @@ services:
       - DB_NAME=player
       - DISPLAY_HOST:localhost:8082
     env_file:
-      - ./back/watch-ms/.env
+      - ./back/.env
     depends_on:
       - watch-postgres
     restart: on-failure
+
+  nginx:
+    image: nginx:latest
+    container_name: nginx
+    ports:
+      - "8080:443"
+    depends_on:
+      - auth-ms
+      - watch-ms
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    restart: always
+
+  minio:
+    image: minio/minio:latest
+    container_name: minio
+    command: server --console-address ":9001" /data/
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      - MINIO_ROOT_USER=nbsp
+    env_file:
+      - ./back/.env
+    volumes:
+      - minio-storage:/data
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:9000/minio/health/live" ]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+    restart: always
+
+
+
+
+
+volumes:
+  minio-storage:

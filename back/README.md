@@ -1,0 +1,9 @@
+### Provide env variables
+
+`JWT_SECRET=`
+
+`DB_PASSWORD=`
+
+`POSTGRES_PASSWORD=`
+
+`MINIO_ROOT_PASSWORD=`

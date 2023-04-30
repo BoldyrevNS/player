@@ -17,6 +17,7 @@ type AuthController interface {
 	Refresh(ctx *gin.Context)
 	DeleteUser(ctx *gin.Context)
 	GetAllUsers(ctx *gin.Context)
+	ValidateAuthToken(ctx *gin.Context)
 }
 
 type authControllerImpl struct {
@@ -30,7 +31,7 @@ func NewAuthController(authService service.AuthService) AuthController {
 }
 
 // Auth				godoc
-// @Tags			Auth
+// @Tags			Auth-public
 // @Summary			Auth user
 // @Description 	Check user credentials and auth in service
 // @Param			user body DTO.AuthRequestDTO true "User authorization"
@@ -60,7 +61,7 @@ func (c *authControllerImpl) Auth(ctx *gin.Context) {
 }
 
 // Registration		godoc
-// @Tags			Auth
+// @Tags			Auth-public
 // @Summary			User registration
 // @Description 	Create new user in database, gave default permissions
 // @Param			user body DTO.RegistrationRequestDTO true "User registration"
@@ -89,7 +90,7 @@ func (c *authControllerImpl) Registration(ctx *gin.Context) {
 }
 
 // Refresh			godoc
-// @Tags			Auth
+// @Tags			Auth-public
 // @Summary			Refresh tokens
 // @Description 	Gave new token pair
 // @Param			user body DTO.RefreshRequestDTO true "Refresh tokens"
@@ -115,7 +116,7 @@ func (c *authControllerImpl) Refresh(ctx *gin.Context) {
 }
 
 // DeleteUser 		godoc
-// @Tags			Auth
+// @Tags			Auth-admin
 // @Summary			Delete user
 // @Security 		BearerAuth
 // @Description		Remove user data by id.
@@ -143,7 +144,7 @@ func (c *authControllerImpl) DeleteUser(ctx *gin.Context) {
 }
 
 // GetAllUsers 		godoc
-// @Tags			Auth
+// @Tags			Auth-admin
 // @Summary			Get all users
 // @Security 		BearerAuth
 // @Success			200 {object} response.DataJSON{data=[]DTO.UserDTO}
@@ -169,4 +170,15 @@ func (c *authControllerImpl) GetAllUsers(ctx *gin.Context) {
 	response.SendJSON(ctx, http.StatusOK, response.DataJSON{
 		Data: users,
 	})
+}
+
+// ValidateAuthToken godoc
+// @Tags			Auth-protected
+// @Summary			Token validation
+// @Security 		BearerAuth
+// @Success			200
+// @Failure      	401
+// @Router			/auth/validateAuthToken [get]
+func (c *authControllerImpl) ValidateAuthToken(ctx *gin.Context) {
+	ctx.AbortWithStatus(http.StatusOK)
 }

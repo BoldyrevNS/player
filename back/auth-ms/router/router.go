@@ -13,6 +13,10 @@ import (
 
 func authRoutes(router *gin.RouterGroup, dbInstance *gorm.DB) {
 	public := router.Group("/auth")
+
+	protected := router.Group("/auth")
+	protected.Use(middlewares.ProtectedMiddleware)
+
 	adminPermission := router.Group("/auth")
 	adminPermission.Use(middlewares.AdminPermissionMiddleware)
 
@@ -23,6 +27,8 @@ func authRoutes(router *gin.RouterGroup, dbInstance *gorm.DB) {
 	public.POST("/", authController.Auth)
 	public.POST("/registration", authController.Registration)
 	public.POST("/refresh", authController.Refresh)
+
+	protected.GET("/validateAuthToken", authController.ValidateAuthToken)
 
 	adminPermission.DELETE(":userId", authController.DeleteUser)
 	adminPermission.GET("/allUsers", authController.GetAllUsers)
