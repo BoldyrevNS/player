@@ -1,7 +1,7 @@
 package main
 
 import (
-	docs "auth-ms/docs"
+	"auth-ms/docs"
 	"auth-ms/router"
 	"github.com/joho/godotenv"
 	"gorm.io/gorm"
@@ -25,7 +25,7 @@ func migrate(dbInstance *gorm.DB) error {
 
 // @BasePath	/api/v1/
 func main() {
-	err := godotenv.Load(".env")
+	_ = godotenv.Load(".env")
 	docs.SwaggerInfo.Host = os.Getenv("DISPLAY_HOST")
 	dbInstance := db.NewDatabase(db.DatabaseConnect{
 		Host:     os.Getenv("DB_HOST"),
@@ -34,7 +34,7 @@ func main() {
 		User:     os.Getenv("DB_USER"),
 		Password: os.Getenv("DB_PASSWORD"),
 	}).Init()
-	err = migrate(dbInstance)
+	err := migrate(dbInstance)
 	if err != nil {
 		log.Fatalf("migration error")
 	}

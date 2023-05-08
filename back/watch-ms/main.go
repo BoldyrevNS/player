@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"os"
 	"shared/db"
-	docs "watch-ms/docs"
+	"watch-ms/docs"
 	"watch-ms/model"
 	"watch-ms/router"
 )
@@ -49,6 +49,6 @@ func main() {
 	err = server.ListenAndServe()
 
 	if err != nil {
-		log.Fatalf("Serve error: %v", err)
+		log.Fatalf("serve error: %v", err)
 	}
 }
