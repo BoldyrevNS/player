@@ -8,10 +8,12 @@ import (
 	"shared/middlewares"
 	categoryController "watch-ms/controller/category"
 	categoryProvider "watch-ms/provider/category"
+	episodeProvider "watch-ms/provider/episode"
 	categoryService "watch-ms/service/category"
+	"watch-ms/service/episode"
 )
 
-func categoryRoutes(router *gin.RouterGroup, dbInstance *gorm.DB) {
+func categoryInit(router *gin.RouterGroup, dbInstance *gorm.DB) {
 	protected := router.Group("/category")
 	protected.Use(middlewares.ProtectedMiddleware)
 
@@ -28,11 +30,18 @@ func categoryRoutes(router *gin.RouterGroup, dbInstance *gorm.DB) {
 	adminPermission.DELETE("/:categoryId", controller.DeleteCategory)
 }
 
+func episodeInit(dbInstance *gorm.DB) {
+	provider := episodeProvider.NewEpisodeProvider(dbInstance)
+	episodeService := episode.NewEpisodeService(provider)
+	go episodeService.UploadNewEpisode()
+}
+
 func NewRouter(dbInstance *gorm.DB) *gin.Engine {
 	router := gin.Default()
 	router.GET("/docs/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	baseRouter := router.Group("/api/v1")
-	categoryRoutes(baseRouter, dbInstance)
+	categoryInit(baseRouter, dbInstance)
+	episodeInit(dbInstance)
 
 	return router
 }

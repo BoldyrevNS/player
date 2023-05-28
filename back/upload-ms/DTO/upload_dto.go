@@ -2,13 +2,16 @@ package DTO
 
 import "mime/multipart"
 
-type UploadFileDTO struct {
-	File      *multipart.FileHeader `form:"file"`
-	TitleName string                `form:"title_name"`
-	TitleId   uint                  `form:"title_id"`
+type UploadNewEpisodeDTO struct {
+	Video         *multipart.FileHeader `form:"video"  swaggerignore:"true"`
+	Thumbnail     *multipart.FileHeader `form:"thumbnail" swaggerignore:"true"`
+	SeasonId      uint                  `form:"seasonId"`
+	TitleId       uint                  `form:"titleId"`
+	EpisodeName   string                `form:"episodeName"`
+	EpisodeNumber uint                  `form:"episodeNumber"`
 }
 
-type GetFileDTO struct {
-	Filename string `json:"filename"`
-	Title    string `json:"title"`
+type UploadWatchThumbnailDTO struct {
+	Thumbnail *multipart.FileHeader `form:"thumbnail" swaggerignore:"true"`
+	WatchId   uint                  `form:"watch_id"`
 }

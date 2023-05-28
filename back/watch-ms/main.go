@@ -14,6 +14,7 @@ import (
 
 func migrate(dbInstance *gorm.DB) error {
 	err := dbInstance.AutoMigrate(&model.Category{})
+	err = dbInstance.AutoMigrate(&model.Episode{})
 	return err
 }
 

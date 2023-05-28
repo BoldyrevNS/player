@@ -5,7 +5,7 @@ import (
 	"auth-ms/provider"
 	"golang.org/x/crypto/bcrypt"
 	"shared/common/token"
-	"shared/model"
+	userModel "shared/model/user"
 )
 
 type AuthService interface {
@@ -46,7 +46,7 @@ func (s *authServiceImpl) Registration(data DTO.RegistrationRequestDTO) error {
 	if err != nil {
 		return err
 	}
-	user := model.User{
+	user := userModel.User{
 		Firstname: data.Firstname,
 		Lastname:  data.Lastname,
 		Email:     data.Email,

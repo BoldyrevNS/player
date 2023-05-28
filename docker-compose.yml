@@ -19,7 +19,7 @@ services:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_INTERNAL:PLAINTEXT
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092,PLAINTEXT_INTERNAL://broker:29092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://broker:9092
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
@@ -50,7 +50,7 @@ services:
     ports:
       - "8081:8080"
     environment:
-      - DB_HOST=auth-postgres
+      - DB_HOST=host.docker.internal
       - DB_PORT=5432
       - DB_USER=nbsp
       - DB_NAME=player
@@ -86,15 +86,34 @@ services:
     ports:
       - "8082:8080"
     environment:
-      - DB_HOST=watch-postgres
-      - DB_PORT=5432
+      - DB_HOST=host.docker.internal
+      - DB_PORT=5433
       - DB_USER=nbsp
       - DB_NAME=player
-      - DISPLAY_HOST:localhost:8082
+      - DISPLAY_HOST=localhost:8082
+      - BROKERS=broker:9092
     env_file:
       - ./back/.env
     depends_on:
       - watch-postgres
+    restart: on-failure
+
+  upload-ms:
+    build:
+      context: ./back
+      dockerfile: ./upload-ms/Dockerfile
+    container_name: upload-ms
+    ports:
+      - "8083:8080"
+    environment:
+      - DISPLAY_HOST=localhost:8083
+      - BROKERS=broker:9092
+      - WRITE_BROKER=broker:9092
+      - MINIO_ENDPOINT=minio:9000
+    env_file:
+      - ./back/.env
+    depends_on:
+      - minio
     restart: on-failure
 
   nginx:
@@ -118,6 +137,7 @@ services:
       - "9001:9001"
     environment:
       - MINIO_ROOT_USER=nbsp
+      - MINIO_STORAGE_USE_HTTPS=False
     env_file:
       - ./back/.env
     volumes:

@@ -9,7 +9,7 @@ import (
 	"net/http"
 	"os"
 	"shared/db"
-	"shared/model"
+	model "shared/model/user"
 )
 
 func migrate(dbInstance *gorm.DB) error {

@@ -1,52 +1,48 @@
 package file
 
 import (
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
-	"shared/common/response"
 	"upload-ms/DTO"
-	"upload-ms/service/file"
+	"upload-ms/service/episode"
 )
 
 type Controller interface {
 	UploadVideo(ctx *gin.Context)
-	GetVideo(ctx *gin.Context)
 }
 
 type controllerImpl struct {
-	fileService file.Service
+	episodeService episode.Service
 }
 
-func NewUploadController(uploadService file.Service) Controller {
-	return &controllerImpl{fileService: uploadService}
+func NewUploadController(episodeService episode.Service) Controller {
+	return &controllerImpl{
+		episodeService: episodeService,
+	}
 }
 
+// UploadVideo		godoc
+// @Tags			Upload
+// @Summary			Upload video
+// @Param			uploadData formData DTO.UploadNewEpisodeDTO true "Upload video params"
+// @Param			video formData file true "video file"
+// @Param			thumbnail formData file true "episode thumbnail file"
+// @Success			200
+// @Failure      	400
+// @Router			/upload/ [post]
 func (c *controllerImpl) UploadVideo(ctx *gin.Context) {
-	var formData DTO.UploadFileDTO
+	var formData DTO.UploadNewEpisodeDTO
 	err := ctx.Bind(&formData)
 	if err != nil {
+		fmt.Println(err)
 		ctx.AbortWithStatus(http.StatusBadRequest)
 		return
 	}
-	err = c.fileService.UploadVideo(formData)
+	err = c.episodeService.UploadNewEpisode(formData)
 	if err != nil {
+		fmt.Println(err)
 		ctx.AbortWithStatus(http.StatusBadRequest)
 	}
-}
-
-func (c *controllerImpl) GetVideo(ctx *gin.Context) {
-	var data DTO.GetFileDTO
-	err := ctx.BindJSON(&data)
-	if err != nil {
-		ctx.AbortWithStatus(http.StatusBadRequest)
-		return
-	}
-	fileObj, err := c.fileService.GetVideo(data)
-	if err != nil {
-		ctx.AbortWithStatus(http.StatusInternalServerError)
-		return
-	}
-	response.SendJSON(ctx, http.StatusOK, response.MessageJSON{
-		Message: fileObj,
-	})
+	ctx.AbortWithStatus(http.StatusOK)
 }

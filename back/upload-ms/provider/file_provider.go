@@ -19,9 +19,9 @@ type FileObj struct {
 }
 
 type Provider interface {
-	UploadFile(file *multipart.FileHeader, bucketName string) error
+	UploadFile(file *multipart.FileHeader, filename string, bucketName string) error
 	GetFile(filename string, bucketName string) (string, error)
-	createBucket(bucketName string) error
+	DeleteFile(filename string, bucketName string) error
 }
 
 type providerImpl struct {
@@ -64,8 +64,7 @@ func (p *providerImpl) createBucket(bucketName string) error {
 	return nil
 }
 
-func (p *providerImpl) UploadFile(file *multipart.FileHeader, bucketName string) error {
-	objectName := file.Filename
+func (p *providerImpl) UploadFile(file *multipart.FileHeader, filename string, bucketName string) error {
 	contentType := file.Header["Content-Type"][0]
 	size := file.Size
 	buffer, err := file.Open()
@@ -82,7 +81,15 @@ func (p *providerImpl) UploadFile(file *multipart.FileHeader, bucketName string)
 	if err != nil {
 		return err
 	}
-	_, err = p.client.PutObject(p.ctx, bucketName, objectName, buffer, size, minio.PutObjectOptions{ContentType: contentType})
+	_, err = p.client.PutObject(p.ctx, bucketName, filename, buffer, size, minio.PutObjectOptions{ContentType: contentType})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (p *providerImpl) DeleteFile(fileName string, bucketName string) error {
+	err := p.client.RemoveObject(p.ctx, bucketName, fileName, minio.RemoveObjectOptions{})
 	if err != nil {
 		return err
 	}

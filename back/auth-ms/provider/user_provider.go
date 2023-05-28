@@ -2,7 +2,7 @@ package provider
 
 import (
 	"gorm.io/gorm"
-	"shared/model"
+	model "shared/model/user"
 )
 
 type UserProvider interface {
