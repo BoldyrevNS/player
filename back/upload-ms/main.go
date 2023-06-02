@@ -2,12 +2,20 @@ package main
 
 import (
 	"github.com/joho/godotenv"
+	"gorm.io/gorm"
 	"log"
 	"net/http"
 	"os"
+	"shared/db"
 	"upload-ms/docs"
+	"upload-ms/model"
 	"upload-ms/router"
 )
+
+func migrate(dbInstance *gorm.DB) error {
+	err := dbInstance.AutoMigrate(&model.WatchThumbnail{})
+	return err
+}
 
 // @title		Player upload-service
 // @version		1.0
@@ -19,14 +27,24 @@ import (
 func main() {
 	_ = godotenv.Load(".env")
 	docs.SwaggerInfo.Host = os.Getenv("DISPLAY_HOST")
-
-	routes := router.NewRouter()
+	dbInstance := db.NewDatabase(db.DatabaseConnect{
+		Host:     os.Getenv("DB_HOST"),
+		Port:     os.Getenv("DB_PORT"),
+		Name:     os.Getenv("DB_NAME"),
+		User:     os.Getenv("DB_USER"),
+		Password: os.Getenv("DB_PASSWORD"),
+	}).Init()
+	err := migrate(dbInstance)
+	if err != nil {
+		log.Fatalf("migration error")
+	}
+	routes := router.NewRouter(dbInstance)
 	server := &http.Server{
 		Addr:    ":8080",
 		Handler: routes,
 	}
 
-	err := server.ListenAndServe()
+	err = server.ListenAndServe()
 	if err != nil {
 		log.Fatalf("serve error: %v", err)
 	}

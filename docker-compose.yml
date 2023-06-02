@@ -91,12 +91,30 @@ services:
       - DB_USER=nbsp
       - DB_NAME=player
       - DISPLAY_HOST=localhost:8082
+      - WRITE_BROKER=broker:9092
       - BROKERS=broker:9092
     env_file:
       - ./back/.env
     depends_on:
       - watch-postgres
     restart: on-failure
+
+  upload-postgres:
+    image: postgres:latest
+    container_name: upload-db
+    ports:
+      - "5434:5432"
+    environment:
+      - POSTGRES_USER=nbsp
+      - POSTGRES_DB=player
+    env_file:
+      - ./back/.env
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:5433" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    restart: always
 
   upload-ms:
     build:
@@ -106,14 +124,20 @@ services:
     ports:
       - "8083:8080"
     environment:
+      - DB_HOST=host.docker.internal
+      - DB_PORT=5434
+      - DB_USER=nbsp
+      - DB_NAME=player
       - DISPLAY_HOST=localhost:8083
       - BROKERS=broker:9092
       - WRITE_BROKER=broker:9092
       - MINIO_ENDPOINT=minio:9000
+      - DOWNLOAD_ENDPOINT=http://minio:9000
     env_file:
       - ./back/.env
     depends_on:
       - minio
+      - upload-postgres
     restart: on-failure
 
   nginx:

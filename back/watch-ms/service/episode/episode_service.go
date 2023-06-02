@@ -3,7 +3,6 @@ package episode
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"github.com/segmentio/kafka-go"
 	"os"
 	"shared/DTO/events"
@@ -14,7 +13,7 @@ import (
 )
 
 type Service interface {
-	UploadNewEpisode()
+	OnUploadNewEpisode()
 }
 
 type serviceImpl struct {
@@ -29,14 +28,14 @@ func NewEpisodeService(episodeProvider episode.Provider) Service {
 	brokers := strings.Split(os.Getenv("BROKERS"), ",")
 	return &serviceImpl{
 		episodeProvider: episodeProvider,
-		reader:          broker.NewBrokerReader("upload-video", "watch-ms", brokers),
+		reader:          broker.NewBrokerReader("upload-episode", "watch-ms", brokers),
 		messageCh:       make(chan kafka.Message),
 		commitCh:        make(chan kafka.Message),
 		ctx:             context.Background(),
 	}
 }
 
-func (s *serviceImpl) UploadNewEpisode() {
+func (s *serviceImpl) OnUploadNewEpisode() {
 	go s.reader.FetchMessage(s.ctx, s.messageCh)
 	go s.reader.CommitMessage(s.ctx, s.commitCh)
 	for {
@@ -50,7 +49,6 @@ func (s *serviceImpl) UploadNewEpisode() {
 			VideoUrl:      unmarshalEpisode.VideoPath,
 			ThumbnailUrl:  unmarshalEpisode.ThumbnailPath,
 		})
-		fmt.Println(unmarshalEpisode)
 		s.commitCh <- msg
 	}
 }

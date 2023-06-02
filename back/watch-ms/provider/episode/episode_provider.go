@@ -6,7 +6,9 @@ import (
 )
 
 type Provider interface {
-	GetAll() ([]model.Episode, error)
+	FindAll() ([]model.Episode, error)
+	FindBySeasonId(seasonId uint) ([]model.Episode, error)
+	FindById(episodeId uint) (model.Episode, error)
 	Create(data model.Episode) error
 	Delete(episodeId uint) error
 }
@@ -21,9 +23,21 @@ func NewEpisodeProvider(db *gorm.DB) Provider {
 	}
 }
 
-func (p *providerImpl) GetAll() ([]model.Episode, error) {
+func (p *providerImpl) FindAll() ([]model.Episode, error) {
 	var episodes []model.Episode
 	res := p.db.Find(&episodes)
+	return episodes, res.Error
+}
+
+func (p *providerImpl) FindById(episodeId uint) (model.Episode, error) {
+	var episode model.Episode
+	res := p.db.Find(&episode, episodeId)
+	return episode, res.Error
+}
+
+func (p *providerImpl) FindBySeasonId(seasonId uint) ([]model.Episode, error) {
+	var episodes []model.Episode
+	res := p.db.Where("season_id = ?", seasonId).Find(&episodes)
 	return episodes, res.Error
 }
 

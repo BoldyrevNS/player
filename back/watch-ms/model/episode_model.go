@@ -7,4 +7,5 @@ type Episode struct {
 	EpisodeNumber uint   `gorm:"type:int"`
 	VideoUrl      string `gorm:"type:varchar(255)"`
 	ThumbnailUrl  string `gorm:"type:varchar(255)"`
+	Season        Season
 }

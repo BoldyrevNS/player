@@ -7,14 +7,19 @@ import (
 	"net/http"
 	"os"
 	"shared/db"
+	"watch-ms/DI"
 	"watch-ms/docs"
 	"watch-ms/model"
 	"watch-ms/router"
+	"watch-ms/routines"
 )
 
 func migrate(dbInstance *gorm.DB) error {
 	err := dbInstance.AutoMigrate(&model.Category{})
 	err = dbInstance.AutoMigrate(&model.Episode{})
+	err = dbInstance.AutoMigrate(&model.Watch{})
+	err = dbInstance.AutoMigrate(&model.Title{})
+	err = dbInstance.AutoMigrate(&model.Season{})
 	return err
 }
 
@@ -40,7 +45,11 @@ func main() {
 		log.Fatalf("migration error")
 	}
 
-	routes := router.NewRouter(dbInstance)
+	container := DI.NewContainer(dbInstance)
+
+	routines.Init(container.Services)
+
+	routes := router.NewRouter(container.Controllers)
 
 	server := &http.Server{
 		Addr:    ":8080",

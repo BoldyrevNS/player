@@ -4,25 +4,20 @@ import (
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
-	"gorm.io/gorm"
 	"shared/middlewares"
-	categoryController "watch-ms/controller/category"
-	categoryProvider "watch-ms/provider/category"
-	episodeProvider "watch-ms/provider/episode"
-	categoryService "watch-ms/service/category"
-	"watch-ms/service/episode"
+	"watch-ms/DI"
+	"watch-ms/controller/category"
+	"watch-ms/controller/season"
+	"watch-ms/controller/title"
+	"watch-ms/controller/watch"
 )
 
-func categoryInit(router *gin.RouterGroup, dbInstance *gorm.DB) {
+func categoryInit(router *gin.RouterGroup, controller category.Controller) {
 	protected := router.Group("/category")
 	protected.Use(middlewares.ProtectedMiddleware)
 
 	adminPermission := router.Group("/category")
 	adminPermission.Use(middlewares.AdminPermissionMiddleware)
-
-	provider := categoryProvider.NewCategoryProvider(dbInstance)
-	service := categoryService.NewCategoryService(provider)
-	controller := categoryController.NewCategoryController(service)
 
 	protected.GET("/all", controller.GetAllCategories)
 
@@ -30,18 +25,35 @@ func categoryInit(router *gin.RouterGroup, dbInstance *gorm.DB) {
 	adminPermission.DELETE("/:categoryId", controller.DeleteCategory)
 }
 
-func episodeInit(dbInstance *gorm.DB) {
-	provider := episodeProvider.NewEpisodeProvider(dbInstance)
-	episodeService := episode.NewEpisodeService(provider)
-	go episodeService.UploadNewEpisode()
+func watchInit(router *gin.RouterGroup, controller watch.Controller) {
+	protected := router.Group("/watch")
+	protected.Use(middlewares.ProtectedMiddleware)
+
+	protected.POST("/start", controller.StartWatch)
 }
 
-func NewRouter(dbInstance *gorm.DB) *gin.Engine {
+func titleInit(router *gin.RouterGroup, controller title.Controller) {
+	adminPermission := router.Group("/title")
+	adminPermission.Use(middlewares.AdminPermissionMiddleware)
+
+	adminPermission.POST("/", controller.CreateTitle)
+}
+
+func seasonInit(router *gin.RouterGroup, controller season.Controller) {
+	adminPermission := router.Group("/season")
+	adminPermission.Use(middlewares.AdminPermissionMiddleware)
+
+	adminPermission.POST("/", controller.CreateSeason)
+}
+
+func NewRouter(container DI.ControllerContainer) *gin.Engine {
 	router := gin.Default()
 	router.GET("/docs/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	baseRouter := router.Group("/api/v1")
-	categoryInit(baseRouter, dbInstance)
-	episodeInit(dbInstance)
+	categoryInit(baseRouter, container.CategoryController)
+	watchInit(baseRouter, container.WatchController)
+	titleInit(baseRouter, container.TitleController)
+	seasonInit(baseRouter, container.SeasonController)
 
 	return router
 }

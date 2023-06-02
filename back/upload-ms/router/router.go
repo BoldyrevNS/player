@@ -4,33 +4,48 @@ import (
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
-	"os"
-	"shared/broker"
+	"gorm.io/gorm"
 	"shared/middlewares"
-	uploadController "upload-ms/controller/file"
-	fileProvider "upload-ms/provider"
+	uploadController "upload-ms/controller/upload"
+	fileProvider "upload-ms/provider/file"
+	"upload-ms/provider/watch_thumbnail"
 	"upload-ms/service/episode"
 	uploadService "upload-ms/service/file"
 )
 
-func episodesInit(router *gin.RouterGroup) {
+func episodesInit(router *gin.RouterGroup, dbInstance *gorm.DB) {
+	saveFrameInfoCh := make(chan uploadService.SaveFrameInfo)
+	uploadedFrameInfoCh := make(chan uploadService.UploadedFrameInfo)
+	deleteFrameCh := make(chan string)
+
+	protected := router.Group("/upload")
+	protected.Use(middlewares.ProtectedMiddleware)
 
 	adminPermission := router.Group("/upload")
 	adminPermission.Use(middlewares.AdminPermissionMiddleware)
-	brokerWriter := broker.NewBrokerWriter("upload-video", os.Getenv("WRITE_BROKER"))
+
 	fProvider := fileProvider.NewFileService()
-	fileService := uploadService.NewFileService(fProvider)
-	episodeService := episode.NewEpisodeService(fileService, brokerWriter)
+	watchThumbnailProvider := watch_thumbnail.NewWatchThumbnailProvider(dbInstance)
+
+	fileService := uploadService.NewFileService(fProvider, saveFrameInfoCh, uploadedFrameInfoCh, deleteFrameCh)
+	episodeService := episode.NewEpisodeService(fileService, watchThumbnailProvider, saveFrameInfoCh, uploadedFrameInfoCh, deleteFrameCh)
 	controller := uploadController.NewUploadController(episodeService)
 
-	adminPermission.POST("/uploadEpisode", controller.UploadVideo)
+	go episodeService.OnUserStartWatch()
+	go fileService.SaveVideoFrameLocal()
+	go fileService.DeleteVideoFrameLocal()
+	go episodeService.SaveWatchThumbnail()
+
+	protected.PATCH("/updateWatchThumbnail", controller.UpdateWatchThumbnail)
+
+	adminPermission.POST("/episode", controller.UploadVideo)
 }
 
-func NewRouter() *gin.Engine {
+func NewRouter(dbInstance *gorm.DB) *gin.Engine {
 	router := gin.Default()
 
 	router.GET("/docs/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	baseRouter := router.Group("/api/v1")
-	episodesInit(baseRouter)
+	episodesInit(baseRouter, dbInstance)
 	return router
 }

@@ -19,6 +19,9 @@ RUN swag init --parseDependency
 RUN go build -o output main.go
 
 FROM alpine
+RUN apk update
+RUN apk upgrade
+RUN apk add --no-cache ffmpeg
 WORKDIR /build
 COPY --from=builder build/app/src/output build/upload-ms
 EXPOSE 8080

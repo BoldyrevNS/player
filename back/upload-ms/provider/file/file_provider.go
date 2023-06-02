@@ -1,4 +1,4 @@
-package provider
+package file
 
 import (
 	"context"
@@ -12,14 +12,9 @@ import (
 	"time"
 )
 
-type FileObj struct {
-	Buffer      []byte
-	Size        int64
-	ContentType string
-}
-
 type Provider interface {
-	UploadFile(file *multipart.FileHeader, filename string, bucketName string) error
+	UploadMultipartFile(file *multipart.FileHeader, filename string, bucketName string) error
+	UploadLocalFile(filePath string, contentType string, filename string, bucketName string) error
 	GetFile(filename string, bucketName string) (string, error)
 	DeleteFile(filename string, bucketName string) error
 }
@@ -64,7 +59,7 @@ func (p *providerImpl) createBucket(bucketName string) error {
 	return nil
 }
 
-func (p *providerImpl) UploadFile(file *multipart.FileHeader, filename string, bucketName string) error {
+func (p *providerImpl) UploadMultipartFile(file *multipart.FileHeader, filename string, bucketName string) error {
 	contentType := file.Header["Content-Type"][0]
 	size := file.Size
 	buffer, err := file.Open()
@@ -74,7 +69,7 @@ func (p *providerImpl) UploadFile(file *multipart.FileHeader, filename string, b
 	defer func() {
 		err := buffer.Close()
 		if err != nil {
-			log.Fatal("buffer close error on file uploading:", err)
+			log.Fatal("buffer close error on upload uploading:", err)
 		}
 	}()
 	err = p.createBucket(bucketName)
@@ -88,8 +83,28 @@ func (p *providerImpl) UploadFile(file *multipart.FileHeader, filename string, b
 	return nil
 }
 
+func (p *providerImpl) UploadLocalFile(filePath string, contentType string, filename string, bucketName string) error {
+	err := p.createBucket(bucketName)
+	if err != nil {
+		return err
+	}
+	_, err = p.client.FPutObject(p.ctx, bucketName, filename, filePath, minio.PutObjectOptions{ContentType: contentType})
+	if err != nil {
+		removeBucketErr := p.client.RemoveBucket(p.ctx, bucketName)
+		if removeBucketErr != nil {
+			return err
+		}
+		return err
+	}
+	return nil
+}
+
 func (p *providerImpl) DeleteFile(fileName string, bucketName string) error {
 	err := p.client.RemoveObject(p.ctx, bucketName, fileName, minio.RemoveObjectOptions{})
+	if err != nil {
+		return err
+	}
+	err = p.client.RemoveBucket(p.ctx, bucketName)
 	if err != nil {
 		return err
 	}
