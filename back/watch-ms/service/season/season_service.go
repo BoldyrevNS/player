@@ -8,6 +8,7 @@ import (
 
 type Service interface {
 	CreateSeason(data DTO.CreateSeasonDTO) error
+	GetAllTitleSeasons(data DTO.GetTitleSeasonsDTO) ([]DTO.TitleSeasonDTO, error)
 }
 
 type serviceImpl struct {
@@ -29,4 +30,19 @@ func (s *serviceImpl) CreateSeason(data DTO.CreateSeasonDTO) error {
 		return err
 	}
 	return nil
+}
+
+func (s *serviceImpl) GetAllTitleSeasons(data DTO.GetTitleSeasonsDTO) ([]DTO.TitleSeasonDTO, error) {
+	var titleSeasons []DTO.TitleSeasonDTO
+	seasons, err := s.seasonProvider.FindTitleSeasons(data.TitleId)
+	if err != nil {
+		return nil, err
+	}
+	for _, s := range seasons {
+		titleSeasons = append(titleSeasons, DTO.TitleSeasonDTO{
+			SeasonId: s.Id,
+			Number:   s.Number,
+		})
+	}
+	return titleSeasons, err
 }

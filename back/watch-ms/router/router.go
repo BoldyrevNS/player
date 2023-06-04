@@ -36,14 +36,24 @@ func titleInit(router *gin.RouterGroup, controller title.Controller) {
 	adminPermission := router.Group("/title")
 	adminPermission.Use(middlewares.AdminPermissionMiddleware)
 
+	protected := router.Group("/title")
+	protected.Use(middlewares.ProtectedMiddleware)
+
 	adminPermission.POST("/", controller.CreateTitle)
+
+	protected.GET("/user", controller.GetUserTitles)
 }
 
 func seasonInit(router *gin.RouterGroup, controller season.Controller) {
 	adminPermission := router.Group("/season")
 	adminPermission.Use(middlewares.AdminPermissionMiddleware)
 
+	protected := router.Group("/season")
+	protected.Use(middlewares.ProtectedMiddleware)
+
 	adminPermission.POST("/", controller.CreateSeason)
+
+	protected.GET("/title", controller.GetAllTitleSeasons)
 }
 
 func NewRouter(container DI.ControllerContainer) *gin.Engine {

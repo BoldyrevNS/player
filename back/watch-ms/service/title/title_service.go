@@ -8,6 +8,7 @@ import (
 
 type Service interface {
 	CreateNewTitle(data DTO.CreateTitleDTO) error
+	GetTitlesExcludeWatched(userId uint) ([]DTO.TitleDTO, error)
 }
 
 type serviceImpl struct {
@@ -29,4 +30,22 @@ func (s *serviceImpl) CreateNewTitle(data DTO.CreateTitleDTO) error {
 		return err
 	}
 	return nil
+}
+
+func (s *serviceImpl) GetTitlesExcludeWatched(userId uint) ([]DTO.TitleDTO, error) {
+	var titles []DTO.TitleDTO
+	titlesRaw, err := s.titleProvider.GetTitlesExcludeWatched(userId)
+	if err != nil {
+		return nil, err
+	}
+	for _, t := range titlesRaw {
+		titles = append(titles, DTO.TitleDTO{
+			Id:           t.Id,
+			Name:         t.Name,
+			ThumbnailUrl: t.ThumbnailUrl,
+			CategoryName: t.CategoryName,
+			CategoryId:   t.CategoryId,
+		})
+	}
+	return titles, nil
 }
